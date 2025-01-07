@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  consul:
+    image: consul:1.15.4
+    ports:
+      - "8500:8500"
+    command: "agent -dev -client=0.0.0.0"
+    networks:
+      - mynet
+
+  kong:
+    image: kong:latest
+    ports:
+      - "8000:8000"  # Public interface
+      - "8443:8443"  # SSL interface
+      - "8001:8001"  # Admin interface
+    environment:
+      # KONG_PORT_MAPS: "80:8000,443:8443"
+      KONG_PROXY_LISTEN: "0.0.0.0:8000,0.0.0.0:8443 ssl"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+      KONG_DATABASE: off  # Disable database mode for DB-less operation
+      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml  # Path to the declarative config file 
+      # KONG_PG_HOST: host.docker.internal  # Use this to refer to your local machine from Docker
+      # KONG_PG_PORT: 5432
+      # KONG_PG_DATABASE: kong
+      # KONG_PG_USER: postgres
+      # KONG_PG_PASSWORD: postgres
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+    depends_on:
+      - consul
+    networks:
+      - mynet
+    volumes:
+      - ./kong.yml:/etc/kong/kong.yml  # Mount the declarative config file into the container
+
+  postfix:
+    image: quay.io/panubo/postfix:latest  # Use the Panubo Postfix image
+    environment:
+      MAILNAME: "localhost"          # Change to your local domain
+      RELAYHOST_AUTH: 'no'                  # Set to 'yes' if using a relay host
+      RELAYHOST: ''                          # Specify relay host if needed
+      SMTP_TLS_SECURITY_LEVEL: "may"       # Allow TLS but do not require it
+    ports:
+      - "25:25"                             # Expose SMTP port
+    networks:
+      - mynet
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - mynet
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  default:
+    driver: bridge
+    external:
+      name: bridge
+  mynet:
+    driver: bridge
