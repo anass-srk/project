@@ -1,0 +1,35 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model SubscriptionType {
+  id                   Int            @id @default(autoincrement())
+  name                 String
+  duration             Int            // Duration in days
+  availabilityStartDate DateTime
+  availabilityEndDate   DateTime
+  price                Float
+  discount             Float
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  subscriptions       Subscription[]
+
+  @@map("subscription_types")
+}
+
+model Subscription {
+  id                Int             @id @default(autoincrement())
+  userId            String
+  startDate         DateTime
+  subscriptionTypeId Int
+  subscriptionType  SubscriptionType @relation(fields: [subscriptionTypeId], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@map("subscriptions")
+}

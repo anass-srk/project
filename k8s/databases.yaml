@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+type: Opaque
+data:
+  POSTGRES_PASSWORD: cG9zdGdyZXM= # base64 encoded 'postgres'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-db
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: user-db
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: user-db
+spec:
+  serviceName: user-db
+  selector:
+    matchLabels:
+      app: user-db
+  template:
+    metadata:
+      labels:
+        app: user-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: transport_user
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: user-db-data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+  volumeClaimTemplates:
+    - metadata:
+        name: user-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+# Similar services and statefulsets for other databases
+apiVersion: v1
+kind: Service
+metadata:
+  name: route-db
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: route-db
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: route-db
+spec:
+  serviceName: route-db
+  selector:
+    matchLabels:
+      app: route-db
+  template:
+    metadata:
+      labels:
+        app: route-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: transport_route
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: route-db-data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+  volumeClaimTemplates:
+    - metadata:
+        name: route-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

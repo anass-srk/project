@@ -1,0 +1,71 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Bus {
+  id                Int      @id @default(autoincrement())
+  registrationNumber String  @unique
+  seats             Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  trips            Trip[]
+
+  @@map("buses")
+}
+
+model Route {
+  id        Int      @id @default(autoincrement())
+  name      String
+  duration  String   // ISO duration
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  stops     Stop[]
+  trips     Trip[]
+
+  @@map("routes")
+}
+
+model Stop {
+  id          Int      @id @default(autoincrement())
+  order       Int
+  name        String
+  latitude    Float
+  longitude   Float
+  arrivalTime String   // ISO time
+  routeId     Int
+  route       Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("stops")
+}
+
+model Trip {
+  id            Int         @id @default(autoincrement())
+  departureTime DateTime
+  status        VoyageState @default(PENDING)
+  duration      String      // ISO duration
+  price         Float
+  availablePlaces Int
+  routeId       Int
+  route         Route       @relation(fields: [routeId], references: [id])
+  driverId      String
+  busId         Int?
+  bus           Bus?        @relation(fields: [busId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("trips")
+}
+
+enum VoyageState {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}

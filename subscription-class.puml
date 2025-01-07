@@ -1,0 +1,25 @@
+@startuml subscription-class
+
+class SubscriptionType {
+  - id: Int
+  - name: String
+  - duration: Int
+  - availabilityStartDate: DateTime
+  - availabilityEndDate: DateTime
+  - price: Float
+  - discount: Float
+  - createdAt: DateTime
+  - updatedAt: DateTime
+}
+
+class Subscription {
+  - id: Int
+  - userId: String
+  - startDate: DateTime
+  - createdAt: DateTime
+  - updatedAt: DateTime
+}
+
+SubscriptionType "1" -- "*" Subscription
+
+@enduml

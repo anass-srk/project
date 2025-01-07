@@ -1,0 +1,21 @@
+@startuml user-class
+
+class User {
+    - id: String
+    - email: String
+    - password: String
+    - firstName: String
+    - lastName: String
+    - createdAt: DateTime
+    - updatedAt: DateTime
+}
+
+class Role {
+    + PASSENGER
+    + DRIVER
+    + ADMIN
+}
+
+User "*" -- "1" Role : has a
+
+@enduml

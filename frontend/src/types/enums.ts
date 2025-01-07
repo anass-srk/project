@@ -1,0 +1,12 @@
+export enum Role {
+  PASSENGER = 'PASSENGER',
+  DRIVER = 'DRIVER',
+  ADMIN = 'ADMIN'
+}
+
+export enum VoyageState {
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
+}

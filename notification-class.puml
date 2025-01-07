@@ -1,0 +1,37 @@
+@startuml notification-class
+
+enum NotificationType {
+    TICKET_PURCHASE
+    TRIP_CANCELLATION
+}
+
+enum NotificationChannel {
+    EMAIL
+    SMS
+}
+
+class Notification {
+    - id: Int
+    - userId: String
+    - type: NotificationType
+    - content: String
+    - sendingDate: DateTime
+    - seenDate: DateTime [0..1]
+    - createdAt: DateTime
+    - updatedAt: DateTime
+}
+
+class NotificationPreference {
+    - id: Int
+    - userId: String
+    - channel: NotificationChannel
+    - enabledNotificationTypes: NotificationType[]
+    - createdAt: DateTime
+    - updatedAt: DateTime
+}
+
+NotificationPreference "*" -- "1" NotificationChannel
+NotificationPreference "*" -- "*" NotificationType
+Notification "*" -- "1" NotificationType
+
+@enduml

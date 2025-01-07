@@ -1,0 +1,882 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Route Service API",
+    "version": "1.0.0",
+    "description": "API documentation for the Route Service"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3002",
+      "description": "Local development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Bus": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "registrationNumber": {
+            "type": "string"
+          },
+          "seats": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Stop": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "float",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": "number",
+            "format": "float",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "arrivalTime": {
+            "type": "string",
+            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+            "description": "Time format (HH:mm)"
+          },
+          "routeId": {
+            "type": "integer"
+          }
+        }
+      },
+      "Route": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "string",
+            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+            "description": "Duration format (HH:mm)"
+          },
+          "stops": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Stop"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Trip": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "departureTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"]
+          },
+          "duration": {
+            "type": "string",
+            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+            "description": "Duration format (HH:mm)"
+          },
+          "price": {
+            "type": "number",
+            "format": "float"
+          },
+          "availablePlaces": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "routeId": {
+            "type": "integer"
+          },
+          "route": {
+            "$ref": "#/components/schemas/Route"
+          },
+          "driverId": {
+            "type": "string"
+          },
+          "busId": {
+            "type": "integer"
+          },
+          "bus": {
+            "$ref": "#/components/schemas/Bus"
+          }
+        }
+      },
+      "CreateBusRequest": {
+        "type": "object",
+        "required": ["registrationNumber", "seats"],
+        "properties": {
+          "registrationNumber": {
+            "type": "string",
+            "minLength": 3
+          },
+          "seats": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "CreateRouteRequest": {
+        "type": "object",
+        "required": ["name", "duration", "stops"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3
+          },
+          "duration": {
+            "type": "string",
+            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+          },
+          "stops": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "order",
+                "name",
+                "latitude",
+                "longitude",
+                "arrivalTime"
+              ],
+              "properties": {
+                "order": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "latitude": {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                },
+                "longitude": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "arrivalTime": {
+                  "type": "string",
+                  "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                }
+              }
+            },
+            "minItems": 2
+          }
+        }
+      },
+      "CreateTripRequest": {
+        "type": "object",
+        "required": [
+          "routeId",
+          "departureTime",
+          "duration",
+          "price",
+          "driverId",
+          "busId"
+        ],
+        "properties": {
+          "routeId": {
+            "type": "integer"
+          },
+          "departureTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration": {
+            "type": "string",
+            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0
+          },
+          "driverId": {
+            "type": "string"
+          },
+          "busId": {
+            "type": "integer"
+          }
+        }
+      },
+      "UpdateTripRequest": {
+        "type": "object",
+        "properties": {
+          "routeId": {
+            "type": "integer"
+          },
+          "departureTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration": {
+            "type": "string",
+            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0
+          },
+          "driverId": {
+            "type": "string"
+          },
+          "busId": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"]
+          },
+          "availablePlaces": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "AvailableResources": {
+        "type": "object",
+        "properties": {
+          "busyDriverIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "busyBusIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "availableBuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bus"
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/buses": {
+      "get": {
+        "summary": "Get all buses",
+        "tags": ["Buses"],
+        "responses": {
+          "200": {
+            "description": "List of buses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Bus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new bus",
+        "tags": ["Buses"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bus created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/buses/{id}": {
+      "get": {
+        "summary": "Get a bus by ID",
+        "tags": ["Buses"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bus details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bus"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a bus",
+        "tags": ["Buses"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bus updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bus"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a bus",
+        "tags": ["Buses"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Bus deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/routes": {
+      "get": {
+        "summary": "Get all routes",
+        "tags": ["Routes"],
+        "responses": {
+          "200": {
+            "description": "List of routes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Route"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new route",
+        "tags": ["Routes"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRouteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Route created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/routes/{id}": {
+      "get": {
+        "summary": "Get a route by ID",
+        "tags": ["Routes"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Route details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a route",
+        "tags": ["Routes"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRouteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Route updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a route",
+        "tags": ["Routes"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Route deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/trips": {
+      "get": {
+        "summary": "Get all trips",
+        "tags": ["Trips"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter trips by date (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of trips",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Trip"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new trip",
+        "tags": ["Trips"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTripRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Trip created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trip"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trips/by-ids": {
+      "get": {
+        "summary": "Get trips by IDs",
+        "tags": ["Trips"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ids",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated list of trip IDs"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of trips",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Trip"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trips/available-resources": {
+      "get": {
+        "summary": "Get available drivers and buses for a date",
+        "tags": ["Trips"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Date to check availability (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available resources",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailableResources"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trips/upcoming": {
+      "get": {
+        "summary": "Get upcoming trips",
+        "tags": ["Trips"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "startDate",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Start date for upcoming trips (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of upcoming trips",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Trip"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trips/{id}": {
+      "get": {
+        "summary": "Get a trip by ID",
+        "tags": ["Trips"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trip details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trip"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a trip",
+        "tags": ["Trips"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTripRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Trip updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trip"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a trip",
+        "tags": ["Trips"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Trip deleted successfully"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+@startuml payment-class
+
+class Ticket {
+  - id: Int
+  - roundTrip: Boolean
+  - price: Float
+  - purchaseDate: DateTime
+  - validationDate: DateTime [0..1]
+  - cancelled: Boolean
+  - userId: String
+  - tripIds: Int[]
+  - createdAt: DateTime
+  - updatedAt: DateTime
+}
+
+class Cancellation {
+  - id: Int
+  - date: DateTime
+  - reason: String
+  - createdAt: DateTime
+  - updatedAt: DateTime
+}
+
+Ticket "1" -- "0..1" Cancellation
+
+@enduml

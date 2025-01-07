@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\anass\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert -f docker-compose.yml --out k8s
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: kong
+  name: kong
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: kong
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\anass\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert -f docker-compose.yml --out k8s
+        kompose.version: 1.35.0 (9532ceef3)
+      labels:
+        io.kompose.service: kong
+    spec:
+      containers:
+        - env:
+            - name: KONG_ADMIN_ACCESS_LOG
+              value: /dev/stdout
+            - name: KONG_ADMIN_ERROR_LOG
+              value: /dev/stderr
+            - name: KONG_ADMIN_LISTEN
+              value: 0.0.0.0:8001
+            - name: KONG_DATABASE
+              value: "off"
+            - name: KONG_DECLARATIVE_CONFIG
+              value: /etc/kong/kong.yml
+            - name: KONG_PROXY_ACCESS_LOG
+              value: /dev/stdout
+            - name: KONG_PROXY_ERROR_LOG
+              value: /dev/stderr
+            - name: KONG_PROXY_LISTEN
+              value: 0.0.0.0:8000,0.0.0.0:8443 ssl
+          image: kong:latest
+          livenessProbe:
+            exec:
+              command:
+                - kong
+                - health
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: kong
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+            - containerPort: 8443
+              protocol: TCP
+            - containerPort: 8001
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/kong/kong.yml
+              name: kong-cm0
+              subPath: kong.yml
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            items:
+              - key: kong.yml
+                path: kong.yml
+            name: kong-cm0
+          name: kong-cm0

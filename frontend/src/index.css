@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  html, body, #root {
+    @apply h-full w-full;
+  }
+
+  body {
+    @apply text-gray-900 transition-colors duration-300;
+  }
+
+  .dark body {
+    @apply text-gray-100;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-300;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-neon-blue to-neon-purple text-white shadow-neon hover:shadow-neon-hover hover:scale-105;
+  }
+  
+  .btn-secondary {
+    @apply bg-light-700 text-gray-900 hover:bg-light-800 border border-gray-200;
+  }
+  
+  .dark .btn-secondary {
+    @apply bg-dark-700 text-gray-100 hover:bg-dark-800 border-neon-blue/20;
+  }
+  
+  .input {
+    @apply w-full px-3 py-2 bg-light-750 border border-gray-200 rounded-lg text-gray-900 
+           focus:outline-none focus:ring-2 focus:ring-neon-blue/50 focus:border-transparent transition-all duration-300;
+  }
+
+  .dark .input {
+    @apply bg-dark-800 border-neon-blue/20 text-gray-100;
+  }
+
+  .card {
+    @apply bg-light-800 rounded-lg border border-gray-200 transition-all duration-300;
+  }
+
+  .dark .card {
+    @apply bg-dark-800 border-neon-blue/10 backdrop-blur-sm;
+  }
+}

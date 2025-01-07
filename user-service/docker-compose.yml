@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  user-service:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/transport_user
+      - JWT_SECRET=your-super-secret-key-change-in-production
+      - PORT=3001
+      - SERVICE_NAME=user-service
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - KONG_ADMIN_URL=http://kong:8001
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=transport_user
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

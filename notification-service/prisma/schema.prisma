@@ -1,0 +1,42 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum NotificationType {
+  TICKET_PURCHASE
+  TRIP_CANCELLATION
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+}
+
+model Notification {
+  id            Int              @id @default(autoincrement())
+  userId        String
+  type          NotificationType
+  content       String
+  sendingDate   DateTime         @default(now())
+  seenDate      DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id                      Int                @id @default(autoincrement())
+  userId                  String             @unique
+  channel                 NotificationChannel
+  enabledNotificationTypes NotificationType[]
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@map("notification_preferences")
+}

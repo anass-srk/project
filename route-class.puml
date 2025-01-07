@@ -1,0 +1,54 @@
+@startuml route-class
+
+class Bus {
+  - id: Int
+  - registrationNumber: String
+  - seats: Int
+  - createdAt: DateTime
+  - updatedAt: DateTime
+}
+
+class Route {
+  - id: Int
+  - name: String
+  - duration: String
+  - createdAt: DateTime
+  - updatedAt: DateTime
+}
+
+class Stop {
+  - id: Int
+  - order: Int
+  - name: String
+  - latitude: Float
+  - longitude: Float
+  - arrivalTime: String
+  - createdAt: DateTime
+  - updatedAt: DateTime
+}
+
+class Trip {
+  - id: Int
+  - departureTime: DateTime
+  - status: VoyageState
+  - duration: String
+  - price: Float
+  - availablePlaces: Int
+  - driverId: String
+  - createdAt: DateTime
+  - updatedAt: DateTime
+}
+
+enum VoyageState {
+  + PENDING
+  + IN_PROGRESS
+  + COMPLETED
+  + CANCELLED
+}
+
+Bus "1" --o "*" Trip
+Route "1" --o "*" Trip
+Route "1" *-- "*" Stop
+Trip "*" -- "1" VoyageState
+
+@enduml
